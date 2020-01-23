@@ -3,7 +3,7 @@
     Page.Title = string.Format("Razor - {0}", "Exercise 01");
     var customername = Request.Form["dataentry"];
     var thebutton = Request.Form["theButton"];
-    string choices = "";
+    string choices;
 
 }
 
@@ -16,9 +16,9 @@
     <div class="offset-1">
         <p></p>
     </div>
-    choices = "";
     choices = Request.Form["meals"];
-    if (thebutton.Equals("submit",StringComparison.OrdinalIgnoreCase)) //press submit buttom
+
+    if (thebutton.Equals("submit", StringComparison.OrdinalIgnoreCase)) //press submit buttom
     {
         if (string.IsNullOrEmpty(customername)) // didn`t enter name
         {
@@ -27,14 +27,21 @@
             </div>
         }
 
-        else if (choices.IsEmpty())//didn`t choose
+        if (choices.IsEmpty())//didn`t choose
         {
             <div class="offset-1">
                 <p style="color:firebrick">Please choose meal items</p>
             </div>
         }
 
-        else
+        @*else if (choices.IsEmpty()&&string.IsNullOrEmpty(customername))//didn`t choose
+        {
+            <div class="offset-1">
+                <p style="color:firebrick">Please enter customer name and choose meal items</p>
+            </div>
+        }*@
+
+        if(!string.IsNullOrEmpty(customername) && !choices.IsEmpty())
         {
             <div class="offset-1">
                 <p>
@@ -73,12 +80,9 @@ else
         </div>
         <div class="col-md-9">
             <label id="mealitems">Choose your meal items</label><br />
-            <input type="checkbox" id="meals" name="meals" value="Steak"
-                   @(Array.IndexOf(choices.Split(','), "Steak") >= 0 ? "checked" : "") />Steak<br />
-            <input type="checkbox" id="meals" name="meals" value="Seafood"
-                   @(Array.IndexOf(choices.Split(','), "Seafood") >= 0 ? "checked" : "") />Seafood<br />
-            <input type="checkbox" id="meals" name="meals" value="Vegetables"
-                   @(Array.IndexOf(choices.Split(','), "Vegetables") >= 0 ? "checked" : "") />Vegetables<br />
+            <input type="checkbox" id="meals" name="meals" value="Steak" />Steak<br />
+            <input type="checkbox" id="meals" name="meals" value="Seafood" />Seafood<br />
+            <input type="checkbox" id="meals" name="meals" value="Vegetables" />Vegetables<br />
         </div>
     </div>
     <div class="row">
