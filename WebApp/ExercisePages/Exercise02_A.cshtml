@@ -1,0 +1,131 @@
+﻿@{
+    Layout = "~/_Layout.cshtml";
+    Page.Title = string.Format("Razor - {0}", "Primary Key Query");
+
+    //output variable
+    string ArtistId = "";
+    string Name = "";
+
+    //input variables for web controls
+    var artistarg = Request.Form["ArtistArg"];
+    var thebutton = Request.Form["theButton"];
+
+    //remember the 1st time the page is called
+    //input variables will be null
+
+    //this page will access the database when the submit button is pressed
+    //the project needs access to 2 more NuGet packages
+    //Microsoft.Aspnet.WebPages.Data
+    //Microsoft.Aspnet.Webpages.WebData
+    
+    //connect to the database
+    //use the name attribute off your web connection string
+
+    var db = Database.Open("Chinook");
+    
+
+    
+    //create the sql command to be executed on the database
+    //input parameters will be represented by the use of placeholders
+    //placeholders are indexes (0, 1, 2,...)
+    //your command can use multiple placeholders
+
+    var sqlcommand = @"SELECT ArtistId, Name
+    FROM Artists
+    WHERE ArtistId = @0";
+
+    //execute command
+    //there is 3 ways to execute a query DEPENDING on your expected results
+    //a) a single row   .QuerySingle(command [, list of argments])
+    //b) 0, 1 or more records   .Query(command [, list of argments])
+    //c) a single value   .QueryValue(command [, list of argments])
+    //the list of argments are your positional incoming argment values
+    //primary key lookup
+    //result should  be one record
+
+    var results = db.QuerySingle(sqlcommand, artistarg);
+    }
+
+    @section banner {
+        <h1>@Page.Title</h1>
+    }
+
+    @if (IsPost)
+    {
+        if (thebutton.Equals("reset"))
+        {
+            <p style="color:darkblue">The Reset Button was just Pressed</p>
+            artistarg = "";
+            ArtistId = "";
+            Name = "";
+        }
+        else
+        {
+            //always check if you even have results
+
+            //checking for query results DEPEND on how the query was executed
+            // a) and c)   check for null
+            // b) check the .Count of the results
+
+            //a primary key lookup returns either the record or nothing
+
+            if (results == null)
+            {
+                <p style="color:firebrick">There was no record returned from the Data Base</p>
+               artistarg = "";
+                ArtistId = "";
+                Name = "";
+            }
+            else
+            {
+                <p style="color:darkgreen">There was a record returned from the Data Base</p>
+
+                //accessing the data out of your results
+                //there is 2 ways to access data on a result row
+                //a) using an index     syntax  result[index] where index value starts at
+                //                        0 which is the first column on the select
+                //b) using the Property Name    syntax result.PropertyName where the
+                //                        property name is the column title
+
+                //data returned has a datatype that matches the Property
+                ArtistId = results[0].ToString();
+                Name = results.Name;
+            }
+        }
+    }
+    else
+    {
+        <p style="color:darkblue">The Data Base has NOT been queried</p>
+        artistarg = "";
+    }
+
+    <form id="theform" method="post">
+        <div class="row">
+            <div class="col-3">
+                <div class="offset-1">
+                    <label id="lblArtistArg" for="ArtistArg">Enter a Artist ID:</label>&nbsp;&nbsp;
+                    <input type="number" step="1" min="1" id="ArtistArg" name="ArtistArg"
+                           value="@artistarg" placeholder="Artist id" />
+                    <br /><br />
+                    <button type="submit" id="theButton" name="theButton"
+                            value="submit" class="btn btn-primary">
+                        Fetch
+                    </button>&nbsp;&nbsp;
+                    <button type="submit" id="theButton" name="theButton"
+                            value="reset" class="btn btn-light">
+                        Reset
+                    </button>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="offset-1">
+                    <label id="lblArtistId">Artist ID:</label>&nbsp;&nbsp;
+                    <label id="ArtistId">@artistarg</label>
+                    <br /><br />
+                    <label id="lblName">Artist Name:</label>&nbsp;&nbsp;
+                    <input type="text" id="Name" name="Name"
+                           value="@Name" readonly />
+                </div>
+            </div>
+        </div>
+    </form>
