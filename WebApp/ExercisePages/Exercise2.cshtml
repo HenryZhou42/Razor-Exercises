@@ -9,7 +9,7 @@
 
     var db = Database.Open("CHINOOK");
 string sqlcommand1 = "SELECT ArtistId, Name FROM Artists WHERE Name LIKE @0 ORDER BY Name";
-        var partialstring = "%" + artistarg + "%";
+        var partialstring =  cid + "%";
         var results = db.Query(sqlcommand1, partialstring);
 }
 

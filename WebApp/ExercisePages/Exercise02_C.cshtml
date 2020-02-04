@@ -6,27 +6,33 @@
     //to retreive the passed data use .QueryString["label"]
     //data is returned as a string
     var cid = Request.QueryString["cid"];
-
+    var artistName = "";
     //good practice
     //check that you actually retreived data
     if (string.IsNullOrEmpty(cid))
     {
-        Response.Redirect("Exercise2.cshtml");
+        Response.Redirect("Exercise02_A.cshtml");
     }
 
     //use data to lookup products
     var db = Database.Open("CHINOOK");
-    var albumquery = "SELECT ArtistId, Name FROM Artists WHERE Name LIKE @0 ORDER BY Name";
-    var partialstring = "%" + cid + "%";
-    var albuminfo = db.Query(albumquery, partialstring);
 
+    var albumquery = "Select Albums.* , Artists.Name from Albums, Artists where Artists.ArtistId =@0 AND Albums.ArtistId =@0";
+    var albumquery2 = "Select Artists.Name from Artists where ArtistId =@0";
+    //var albumquery = "SELECT * FROM Albums WHERE ArtistId = @0 ";
+    var partialstring = cid;
+    var albuminfo = db.Query(albumquery, partialstring);
+    var artistNamea = db.QuerySingle(albumquery2, partialstring);
+    if (albuminfo.Count() != 0) {
+        //artistName = albuminfo[0].Name;
+    }
     //use data to get category name for display heading
     //yes: you could have passed the category name with the category id
     //demonstration of using .QueryValue()
     //var artistquery = @"SELECT Name
     //        FROM Artists
     //        WHERE ArtistId = @0";
-    var artistname = db.QueryValue(artistquery, cid);
+    //var artistname = db.QueryValue(artistquery, cid);
 
     //setup display to use the class WebGrids
     //assign the display data to the instance when it is created
@@ -34,14 +40,14 @@
     //   you need to specify the value when you first create the instance
     //   syntax attribute --> rowsPerPage:value
     var gridinstance = new WebGrid(albuminfo, rowsPerPage: 5);
+    //string a = gridinstance.ToString();
 }
-
 
 @section banner {
     <h1>WebGrid Display</h1>
 }
 <div class="offset-1">
-    <h3>Albums for Artists: @artistname</h3>
+    <h3>Albums for Artists: @artistName</h3>
     <div class="col-11">
         @gridinstance.GetHtml(
             tableStyle: "table table-striped table-bordered table-hover",
