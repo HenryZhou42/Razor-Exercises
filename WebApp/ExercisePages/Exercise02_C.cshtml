@@ -6,7 +6,6 @@
     //to retreive the passed data use .QueryString["label"]
     //data is returned as a string
     var cid = Request.QueryString["cid"];
-    var artistName = "";
     //good practice
     //check that you actually retreived data
     if (string.IsNullOrEmpty(cid))
@@ -16,13 +15,17 @@
 
     //use data to lookup products
     var db = Database.Open("CHINOOK");
-
     var albumquery = "Select Albums.* , Artists.Name from Albums, Artists where Artists.ArtistId =@0 AND Albums.ArtistId =@0";
     var albumquery2 = "Select Artists.Name from Artists where ArtistId =@0";
     //var albumquery = "SELECT * FROM Albums WHERE ArtistId = @0 ";
     var partialstring = cid;
     var albuminfo = db.Query(albumquery, partialstring);
     var artistNamea = db.QuerySingle(albumquery2, partialstring);
+
+    var ArtistNamequery = @"SELECT Name From Artists WHERE ArtistId =@0";
+    var getName = db.QueryValue(ArtistNamequery,  partialstring);
+
+
     if (albuminfo.Count() != 0) {
         //artistName = albuminfo[0].Name;
     }
@@ -47,7 +50,7 @@
     <h1>WebGrid Display</h1>
 }
 <div class="offset-1">
-    <h3>Albums for Artists: @artistName</h3>
+    <h3>Albums for Artists: @getName</h3>
     <div class="col-11">
         @gridinstance.GetHtml(
             tableStyle: "table table-striped table-bordered table-hover",
