@@ -1,0 +1,206 @@
+﻿@{
+    Layout = "~/_Layout.cshtml";
+    Page.Title = string.Format("Razor - {0}", "CRUD - Insert");
+
+    //consider your need for global variables
+    var Title = "";
+    var ArtistId = "0";
+    var ReleasedYear = "0";
+    var ReleaseLabel = "";
+
+    //obtain two lists: SupplierList and CategoryList
+    var db = Database.Open("CHINOOK");
+    var artistrquery = @"SELECT ArtistId, Name
+FROM Artists
+ORDER BY Name";
+
+    var artistlist = db.Query(artistrquery);
+
+    //these are validator controls execute on the server side
+
+    Validation.Add("Title",
+         Validator.Required("Title is required"),
+          Validator.StringLength(160, 1, "Title is limited to 160 characters"));
+
+    Validation.Add("ArtistId",
+       Validator.Integer("Artist ID must be a number."));
+
+    Validation.Add("ReleaseYear",
+       Validator.Integer("Release Year must be a number."),
+       Validator.Range(1950, DateTime.Today.Year, "Release Year must be between 1950 and "+DateTime.Today.Year));
+
+    //QuantityPerUnit is nullable which means 0 required characters
+    Validation.Add("ReleaseLabel",
+         Validator.StringLength(50, 0, "Release label is limited to 50 characters"));
+
+
+
+
+
+    //compare two fields together (ie password)
+    //Validation.Add("ConfirmPassword",
+    //    Validator.Required("Missing confirm password"),
+    //      Validator.StringLength(160, 1, "Confirm password is too long"),
+    //      Validator.EqualsTo("Password", "Password not confirmed"));
+
+    //pattern testing (ie PostalCode)
+    //Validation.Add("PostalCode",
+    //     Validator.Regex(@"^[A-Za-z][0-9][A-Za-z][0-9][A-Za-z][0-9]$",
+    //     "Postal Code format invalid (T7T7T7"));
+}
+@section head{
+    <link href="~/Content/MySpacing.css" rel="stylesheet" />
+}
+
+@section banner{
+    <h1>Database: CRUD Product - Insert</h1>
+}
+
+@if (IsPost)
+{
+    // retreive the data from the form
+    Title = Request.Form["Title"];
+    ArtistId = Request.Form["ArtistList"];
+    ReleasedYear = Request.Form["ReleasedYear"];
+    ReleaseLabel = Request.Form["ReleaseLabel"];
+    var thebutton = Request.Form["FormButton"];
+
+    //when you have multiple buttons, a good practice is to determine
+    //    what action to do for the press button FIRST!
+    if (thebutton.Equals("Clear"))
+    {
+        //empty the form fields
+        Title = "";
+        ArtistId = "0";
+        ReleasedYear = "0";
+        ReleaseLabel = "";
+    }
+    else
+    {
+        //Validation of data
+        //Validation.IsValid() is used to execute the server side validation
+        //the if statement DOES NOT need an else as the Validation control
+        //      message will appear in your Summary() or Message() controls
+        if (Validation.IsValid())
+        {
+            //you may have logical validation needed for your data that cannot
+            //be accomplished using Validation Controls or HTML5
+            //this type of validation is a programmed validation
+
+            //assume that the categoryid is a required field
+            var valid = true;
+            //check validation result
+            if (ArtistId.Equals("0"))
+            {
+                valid = false;
+                <div class="col-12 text-center">
+                    <p style="color:darkslateblue">
+                        You must select an artist id
+                    </p>
+                </div>
+            }
+            if (valid)
+            {
+                //good data
+                try
+                {
+                    //connect to the database
+                    //  done above
+                    //create sql command
+                    var inscommand = @"INSERT INTO Albums (Title, ArtistId, ReleaseYear,
+ReleaseLabel)
+VALUES(@0, @1, @2, @3)";
+                    //execute the command
+                    db.Execute(inscommand, Title,
+                        ArtistId.Equals("0") ? null : ArtistId,
+                        ReleasedYear.Equals("0") ? null : ReleasedYear,
+                        string.IsNullOrEmpty(ReleaseLabel) ? null : ReleaseLabel);
+                    <div class="col-12 text-center">
+                        <p style="color:green">
+                            Album has been added
+                        </p>
+                    </div>
+                }
+                catch (Exception ex)
+                {
+                    <div class="col-12 text-center">
+                        <p style="color:firebrick; font-size:large">
+                            Processing error: @ex.Message
+                        </p>
+                    </div>
+                }
+            }
+
+        }
+
+    }
+
+}
+else
+{
+
+}
+@* there are two ways to display your validation errors
+    a) using the ValidationSummary()
+        - bulleted list of all errors in all fields
+    b) using the ValidationMessage()
+        - placed beside the actual control field
+        - display only the 1st error of field*@
+
+@Html.ValidationSummary()
+<form id="theform" method="post">
+    <div class="row">
+        <div class="col-md-6 text-right">
+
+
+
+
+
+
+
+
+
+            <br />
+        </div>
+        <div class="col-me-6 text-left">
+            <label for="Title">Title:</label>
+            <input type="text" value="@Title"
+                   id="Title" name="Title" />
+            @* using ValidationMessage("controlname") *@
+            @*@Html.ValidationMessage("ProductName")*@
+            <br />
+            <label for="ArtistID">Catgeory:</label>
+            <select id="ArtistList" name="ArtistList">
+                <option value="0">select artist...</option>
+                @foreach (var item in artistlist)
+                {
+                    if (ArtistId == item.ArtistID.ToString())
+                    {
+                        <option value="@item.ArtistID" selected>@item.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@item.ArtistID">@item.Name</option>
+                    }
+                }
+            </select>
+            <br />
+            <label for="ReleasedYear">Released Year:</label>
+            <input type="number" id="ReleaseYear" name="ReleaseYear"
+                   value="@ReleasedYear" min="1950" max="999999" step="1" /><br />
+
+            <label for="ReleaseLabel">Release Label:</label>
+            <input type="text" id="ReleaseLabel" name="ReleaseLabel"
+                   value="@ReleaseLabel" /><br />
+            <br />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <input type="submit" id="FormButton" name="FormButton"
+                   class="btn btn-primary" value="Add" />
+            <input type="submit" id="FormButton" name="FormButton" formnovalidate
+                   class="btn" value="Clear" />
+        </div>
+    </div>
+</form>
