@@ -2,33 +2,32 @@
     Layout = "~/_Layout.cshtml";
     Page.Title = string.Format("Razor - {0}", "CRUD - Search");
 
-    var productsearch = Request.Form["ProductSearch"];
+    var albumsearch = Request.Form["albumsearch"];
 
     var db = Database.Open("CHINOOK");
-    var partialsearchstring = "%" + productsearch + "%";
+    var partialsearchstring = "%" + albumsearch + "%";
 
-    var queryStatement = "SELECT ProductID, ProductName Name, "
-                        + "CategoryID, UnitPrice, UnitsInStock, Discontinued "
-                        + "FROM Products "
-                        + "WHERE ProductName like @0 "
-                        + "ORDER BY ProductName";
+    var queryStatement = "SELECT AlbumId,Title, "
+                        + "ArtistId, ReleaseYear, ReleaseLabel"
+                        + "FROM Albums "
+                        + "AlbumId = @0";
 
 }
 @section banner{<h1>@Page.Title</h1>}
 
 <form id="theForm" action="" method="post">
     <div class="col-sm-3">
-        <label id="forProductSearch">Product Name</label><br />
-        <input type="text" name="ProductSearch" value="@productsearch"><br /><br />
+        <label id="foralbumsearch">Album Name</label><br />
+        <input type="text" name="albumsearch" value="@albumsearch"><br /><br />
         <button type="submit" class="btn btn-primary" name="Search" id="theSearch">Search</button>
     </div><br />
 </form>
 <div class="col-sm-8">
     @if (IsPost)
     {
-        if (productsearch.IsEmpty())
+        if (albumsearch.IsEmpty())
         {
-            <p><strong><span style="color:firebrick">Enter a product name (or partial name).</span></strong></p>
+            <p><strong><span style="color:firebrick">Enter a album name (or partial name).</span></strong></p>
         }
         else
         {
@@ -45,13 +44,12 @@
                 lastText: "Last",
                 firstText: "First",
                 columns: grid.Columns(
-                grid.Column(columnName: "ProductID", header: "ID"),
-                grid.Column(columnName: "Name"),
-                grid.Column(columnName: "CategoryID", header: "Cat"),
-                grid.Column(columnName: "UnitPrice", header: "$"),
-                grid.Column(columnName: "UnitsInStock", header: "UiS"),
-                grid.Column(columnName: "Discontinued", header: "Discontinued"),
-                grid.Column(header: "", format: @<text><a href="~/SamplePages/ProductEdit.cshtml?pid=@item.ProductID">Edit</a></text>)
+                grid.Column(columnName: "AlbumId", header: "AlbumId"),
+                grid.Column(columnName: "Title", header:"Title"),
+                grid.Column(columnName: "ArtistId", header: "ArtistId"),
+                grid.Column(columnName: "ReleaseYear", header: "ReleaseYear"),
+                grid.Column(columnName: "ReleaseLabel ", header: "ReleaseLabel "),
+                grid.Column(header: "", format: @<text><a href="~/ExercisePages/Exercise04 (2).cshtml">Edit</a></text>)
 ));
             }
         }
