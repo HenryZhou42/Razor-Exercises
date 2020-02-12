@@ -7,12 +7,20 @@
     var db = Database.Open("CHINOOK");
     var partialsearchstring = "%" + albumsearch + "%";
 
-    var queryStatement = "SELECT AlbumId,Title, "
-                        + "ArtistId, ReleaseYear, ReleaseLabel"
-                        + "FROM Albums "
-                        + "AlbumId = @0";
+    var queryStatement = @"SELECT AlbumId, Title, 
+                        ArtistId, ReleaseYear, ReleaseLabel 
+                        FROM Albums  
+                        WHERE Title like @0 
+                        ORDER BY Title";
+
+    //var queryStatement = "SELECT AlbumId, Title, "
+    //                + "ArtistId, ReleaseYear, ReleaseLabel "
+    //                + "FROM Albums ";
+    var queryalbums = db.Query(queryStatement,partialsearchstring);
+
 
 }
+
 @section banner{<h1>@Page.Title</h1>}
 
 <form id="theForm" action="" method="post">
@@ -31,26 +39,14 @@
         }
         else
         {
-            var queryProducts = db.Query(queryStatement, partialsearchstring);
-            if (queryProducts.Count() == 0)
+            
+            if (queryalbums.Count() == 0)
             {
                 <p><strong><span style="color:firebrick">Nothing found for search argument.</span></strong></p>
             }
             else
             {
-                var grid = new WebGrid(queryProducts, rowsPerPage: 5);
-                @grid.GetHtml("table table-bordered table-striped table-hover",
-                mode: WebGridPagerModes.All,
-                lastText: "Last",
-                firstText: "First",
-                columns: grid.Columns(
-                grid.Column(columnName: "AlbumId", header: "AlbumId"),
-                grid.Column(columnName: "Title", header:"Title"),
-                grid.Column(columnName: "ArtistId", header: "ArtistId"),
-                grid.Column(columnName: "ReleaseYear", header: "ReleaseYear"),
-                grid.Column(columnName: "ReleaseLabel ", header: "ReleaseLabel "),
-                grid.Column(header: "", format: @<text><a href="~/ExercisePages/Exercise04 (2).cshtml">Edit</a></text>)
-));
+                Response.Redirect("Exercise04(3).cshtml?cid=" + albumsearch);
             }
         }
     }

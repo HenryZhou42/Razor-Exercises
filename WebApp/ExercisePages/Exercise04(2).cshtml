@@ -13,6 +13,8 @@
     var ReleaseYear = Request.Form["ReleaseYear"];
     var ReleaseLabel = Request.Form["ReleaseLabel"];
     var thebutton = Request.Form["theButton"];
+    var message="";
+
 
     //these are validator controls execute on the server side
 
@@ -25,16 +27,16 @@
 
     Validation.Add("ReleaseYear",
         Validator.Integer("ReleaseYear must be a number."),
-        Validator.Range(1950, DateTime.Today.Year, "ReleaseYear is between 1950 and "+DateTime.Today.Year));
+        Validator.Range(1950, DateTime.Today.Year, "ReleaseYear is between 1950 and " + DateTime.Today.Year));
 
-     Validation.Add("ReleaseLabel",
-        Validator.StringLength(50, 1, "ReleaseLabel is limited to 160 characters"));
+    Validation.Add("ReleaseLabel",
+       Validator.StringLength(50, 1, "ReleaseLabel is limited to 160 characters"));
 
 
 
     if (IsPost)
     {
-     
+
         AlbumId = pid;
     }
     var db = Database.Open("CHINOOK");
@@ -42,10 +44,10 @@
             + "FROM Artists "
             + "Order by Name";
     var queryartist = db.Query(artistquery);
-    var queryStatement = "SELECT AlbumId,Title, "
-                        + "ArtistId, ReleaseYear, ReleaseLabel"
+    var queryStatement = "SELECT AlbumId , Title , "
+                        + " ArtistId , ReleaseYear , ReleaseLabel "
                         + "FROM Albums "
-                        + "AlbumId = @0";
+                        + "WHERE AlbumId = @0";
     var queryAlbums = db.QuerySingle(queryStatement, pid);
 }
 
@@ -58,47 +60,62 @@
 }
 @if (IsPost)
 {
+
     if (thebutton.Equals("backtosearch"))
     {
         Response.Redirect("Exercise04(1).cshtml");
     }
     if (Validation.IsValid())
     {
-     
-         if (thebutton.Equals("update"))
+
+        if (thebutton.Equals("update"))
         {
             try
             {
-                var sqlcommand = "UPDATE Albums SET "
+                if (thebutton.Equals("update"))
+                {
+                    var sqlcommand = "UPDATE Albums SET "
                                 + "Title = @0, "
                                 + "ArtistId = @1, "
                                 + "ReleaseYear = @2, "
-                                + "ReleaseLabel = @3, "
+                                + "ReleaseLabel = @3 "
                                 + "WHERE AlbumId = @4";
-                var rowsaffected = db.Execute(sqlcommand, Title,
+                    var rowsaffected = db.Execute(sqlcommand, Title,
                     ArtistId.Equals("0") ? null : ArtistId,
                     ReleaseYear.Equals("0") ? null : ReleaseYear,
                     string.IsNullOrEmpty(ReleaseLabel) ? null : ReleaseLabel,
                      AlbumId);
-                if (rowsaffected > 0)
-                {
-                    <div class="col-12 text-center">
-                        <p style="color:green">
-                            Album has been UPDATED;
-                        </p>
-                    </div>
+                    if (rowsaffected > 0)
+                    {
+                        message = "Album has been UPDATED";
+                    }
+                    else
+                    {
+                        message = "Album NOT found";
+                    }
                 }
-                else
+                else if (thebutton.Equals("delete"))
                 {
-                    <div class="col-12 text-center">
-                        <p>
-                            <span style="color:brown">
-                                Album not found on file. Update not done. Return to Album search for new product.
-                            </span>
-                            <a href="~/ExercisePages/Exercise04(1).cshtml"> go to search ....</a>
-                        </p>
-                    </div>
+                    var deleteStatement = "Delete Albums WHERE AlbumId = @0";
+
+
+                    var rows = db.Execute(deleteStatement, AlbumId);
+                    if (rows == 1)
+                    {
+                        message = "Album has been DELETED";
+                    }
+                    else
+                    {
+                        message = "Album NOT found";
+                    }
+                    AlbumId = "";
+                    Title = "";
+                    ArtistId = "0";
+                    ReleaseYear = "0";
+                    ReleaseLabel = "";
+
                 }
+
             }
             catch (Exception ex)
             {
@@ -108,47 +125,24 @@
                     </p>
                 </div>
             }
-        }
-        else if (thebutton.Equals("delete"))
-        {
-            var deleteStatement = "Delete Albums  WHERE AlbumId = @0";
-            try
-            {
-                var rows = db.Execute(deleteStatement, AlbumId);
-                if (rows == 1)
-                {
-                    <div class="col-12 text-center">
-                        <p style="color:green">
-                            Product has been DELETED
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <p>Delete failed. Record is not on file.</p>
-                }
-                AlbumId = "";
-                Title = "";
-                ArtistId = "0";
-                ReleaseYear = "0";
-                ReleaseLabel = "";
-            }
-            catch (Exception ex)
-            {
-                <p>Error: Unable to delete exception is: @ex.Message</p>
-            }
+
         }
     }
 }
 else //IsPost=false
 {
     AlbumId = queryAlbums.AlbumId.ToString();
-     Title = queryAlbums. Title;
+    Title = queryAlbums.Title;
     ArtistId = queryAlbums.ArtistId == null ? "0" : queryAlbums.ArtistId.ToString();
     ReleaseYear = queryAlbums.ReleaseYear == null ? "0" : queryAlbums.ReleaseYear.ToString();
-    ReleaseLabel = queryAlbums.ReleaseLabel;
+    ReleaseLabel = queryAlbums.ReleaseLabel == null ? null : queryAlbums.ReleaseLabel.ToString();
 }
 @Html.ValidationSummary()
+<div class="col-12 text-center">
+    <p style="color:green">
+        @message
+    </p>
+</div>
 <form id="theForm" action="" method="post">
     <div class="row row-cols-2">
         <div class="col text-right">
@@ -169,9 +163,9 @@ else //IsPost=false
         <div class="col text-left">
             <select name="ArtistId">
                 <option value="0">select...</option>
-                @foreach (var acollectionrow in queryAlbums)
+                @foreach (var acollectionrow in queryartist)
                 {
-                    if (acollectionrow.SupplierID.ToString() == ArtistId)
+                    if (acollectionrow.ArtistId.ToString() == ArtistId)
                     {
                         <option value="@acollectionrow[0]" selected>@acollectionrow[1]</option>
                     }
