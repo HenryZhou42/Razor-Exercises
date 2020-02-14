@@ -49,6 +49,10 @@
                         + "FROM Albums "
                         + "WHERE AlbumId = @0";
     var queryAlbums = db.QuerySingle(queryStatement, pid);
+    if (queryAlbums == null)
+    {
+        Response.Redirect("Exercise04(1).cshtml");
+    }
 }
 
 @section head{
@@ -68,65 +72,69 @@
     if (Validation.IsValid())
     {
 
-        if (thebutton.Equals("update"))
+
+
+        try
         {
-            try
+            if (thebutton.Equals("update"))
             {
-                if (thebutton.Equals("update"))
+                var sqlcommand = "UPDATE Albums SET "
+                            + "Title = @0, "
+                            + "ArtistId = @1, "
+                            + "ReleaseYear = @2, "
+                            + "ReleaseLabel = @3 "
+                            + "WHERE AlbumId = @4";
+                var rowsaffected = db.Execute(sqlcommand, Title,
+                ArtistId.Equals("0") ? null : ArtistId,
+                ReleaseYear.Equals("0") ? null : ReleaseYear,
+                string.IsNullOrEmpty(ReleaseLabel) ? null : ReleaseLabel,
+                 AlbumId);
+                if (rowsaffected > 0)
                 {
-                    var sqlcommand = "UPDATE Albums SET "
-                                + "Title = @0, "
-                                + "ArtistId = @1, "
-                                + "ReleaseYear = @2, "
-                                + "ReleaseLabel = @3 "
-                                + "WHERE AlbumId = @4";
-                    var rowsaffected = db.Execute(sqlcommand, Title,
-                    ArtistId.Equals("0") ? null : ArtistId,
-                    ReleaseYear.Equals("0") ? null : ReleaseYear,
-                    string.IsNullOrEmpty(ReleaseLabel) ? null : ReleaseLabel,
-                     AlbumId);
-                    if (rowsaffected > 0)
-                    {
-                        message = "Album has been UPDATED";
-                    }
-                    else
-                    {
-                        message = "Album NOT found";
-                    }
+                    message = "Album has been UPDATED";
                 }
-                else if (thebutton.Equals("delete"))
+                else
                 {
-                    var deleteStatement = "Delete Albums WHERE AlbumId = @0";
-
-
-                    var rows = db.Execute(deleteStatement, AlbumId);
-                    if (rows == 1)
-                    {
-                        message = "Album has been DELETED";
-                    }
-                    else
-                    {
-                        message = "Album NOT found";
-                    }
-                    AlbumId = "";
-                    Title = "";
-                    ArtistId = "0";
-                    ReleaseYear = "0";
-                    ReleaseLabel = "";
-
+                    message = "Album NOT found";
                 }
+            }
+            else if (thebutton.Equals("delete"))
+            {
+                var deletestatement1 = "DELETE Tracks WHERE AlbumId = @0";
+
+                var row1 = db.Execute(deletestatement1, AlbumId);
+
+                var deleteStatement = "Delete Albums WHERE AlbumId = @0";
+
+
+                var rows = db.Execute(deleteStatement, AlbumId);
+                if (rows == 1 && row1 >=0)
+                {
+                    message = "Album has been DELETED";
+                }
+                else
+                {
+                    message = "Album NOT found";
+                }
+                AlbumId = "";
+                Title = "";
+                ArtistId = "0";
+                ReleaseYear = "0";
+                ReleaseLabel = "";
 
             }
-            catch (Exception ex)
-            {
+
+        }
+        catch (Exception ex)
+        {
                 <div class="col-12 text-center">
                     <p style="color:firebrick; font-size:large">
                         Processing error: @ex.Message
                     </p>
                 </div>
-            }
-
         }
+
+
     }
 }
 else //IsPost=false
